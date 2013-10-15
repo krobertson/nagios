@@ -61,6 +61,10 @@ rescue Net::HTTPServerException
   raise 'Could not find appropriate items in the "users" databag.  Check to make sure there is a users databag and if you have set the "users_databag_group" that users in that group exist'
 end
 
+Array(node['nagios']['additional_sysadmins']).each do |s|
+  sysadmins << s
+end
+
 case node['nagios']['server_auth_method']
 when 'openid'
   if web_srv == :apache
@@ -115,6 +119,9 @@ if nodes.empty?
   Chef::Log.info('No nodes returned from search, using this node so hosts.cfg has data')
   nodes << node
 end
+
+# filter nodes that might be at a partial state
+nodes.delete_if { |n| n[:ipaddress].nil? }
 
 # Sort by name to provide stable ordering
 nodes.sort! { |a, b| a.name <=> b.name }
