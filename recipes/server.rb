@@ -61,6 +61,7 @@ rescue Net::HTTPServerException
   raise 'Could not find appropriate items in the "users" databag.  Check to make sure there is a users databag and if you have set the "users_databag_group" that users in that group exist'
 end
 
+# add in additional sysadmins from the attributes
 Array(node['nagios']['additional_sysadmins']).each do |s|
   sysadmins << s
 end
@@ -160,6 +161,11 @@ serviceescalations = nagios_bags.get('nagios_serviceescalations')
 contacts = nagios_bags.get('nagios_contacts')
 contactgroups = nagios_bags.get('nagios_contactgroups')
 servicedependencies = nagios_bags.get('nagios_servicedependencies')
+
+# Add in additional services from the attributes
+Array(node["nagios"]["services"]).each do |s|
+  services << s
+end
 
 # Add unmanaged host hostgroups to the hostgroups array if they don't already exist
 unmanaged_hosts.each do |host|
