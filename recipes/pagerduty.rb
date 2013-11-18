@@ -29,42 +29,46 @@ if using_old_pagerduty_key_attribute?
   node.set['nagios']['pagerduty']['key'] = node['nagios']['pagerduty_key']
 end
 
-package 'libwww-perl' do
-  case node['platform_family']
-  when 'rhel', 'fedora'
-    package_name 'perl-libwww-perl'
-  when 'debian'
-    package_name 'libwww-perl'
-  when 'arch'
-    package_name 'libwww-perl'
+if node['nagios']['pagerduty']['key'] && !node['nagios']['pagerduty']['key'].empty?
+  node.set['nagios']['additional_admins']['pagerduty'] = true
+
+  package 'libwww-perl' do
+    case node['platform_family']
+    when 'rhel', 'fedora'
+      package_name 'perl-libwww-perl'
+    when 'debian'
+      package_name 'libwww-perl'
+    when 'arch'
+      package_name 'libwww-perl'
+    end
+    action :install
   end
-  action :install
-end
 
-package 'libcrypt-ssleay-perl' do
-  case node['platform_family']
-  when 'rhel', 'fedora'
-    package_name 'perl-Crypt-SSLeay'
-  when 'debian'
-    package_name 'libcrypt-ssleay-perl'
-  when 'arch'
-    package_name 'libcrypt-ssleay-perl'
+  package 'libcrypt-ssleay-perl' do
+    case node['platform_family']
+    when 'rhel', 'fedora'
+      package_name 'perl-Crypt-SSLeay'
+    when 'debian'
+      package_name 'libcrypt-ssleay-perl'
+    when 'arch'
+      package_name 'libcrypt-ssleay-perl'
+    end
+    action :install
   end
-  action :install
-end
 
-remote_file "#{node['nagios']['plugin_dir']}/notify_pagerduty.pl" do
-  owner 'root'
-  group 'root'
-  mode 00755
-  source node['nagios']['pagerduty']['script_url']
-  action :create_if_missing
-end
+  remote_file "#{node['nagios']['plugin_dir']}/notify_pagerduty.pl" do
+    owner 'root'
+    group 'root'
+    mode 00755
+    source node['nagios']['pagerduty']['script_url']
+    action :create_if_missing
+  end
 
-nagios_conf 'pagerduty'
+  nagios_conf 'pagerduty'
 
-cron 'Flush Pagerduty' do
-  user node['nagios']['user']
-  mailto 'root@localhost'
-  command "#{node['nagios']['plugin_dir']}/notify_pagerduty.pl flush"
+  cron 'Flush Pagerduty' do
+    user node['nagios']['user']
+    mailto 'root@localhost'
+    command "#{node['nagios']['plugin_dir']}/notify_pagerduty.pl flush"
+  end
 end
