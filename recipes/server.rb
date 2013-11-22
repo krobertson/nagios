@@ -129,12 +129,6 @@ nodes.sort! { |a, b| a.name <=> b.name }
 
 # maps nodes into nagios hostgroups
 service_hosts = {}
-search(:role, '*:*') do |r|
-  hostgroups << r.name
-  nodes.select { |n| n['roles'].include?(r.name) }.each do |n|
-    service_hosts[r.name] = n[node['nagios']['host_name_attribute']]
-  end
-end
 
 # if using multi environment monitoring add all environments to the array of hostgroups
 if node['nagios']['multi_environment_monitoring']
@@ -146,9 +140,15 @@ if node['nagios']['multi_environment_monitoring']
   end
 end
 
+# Loop over the current's nodes tags to ensure they're in as hostgroups
+hostgroups << node['os'] unless hostgroups.include?(node['os'])
+node['tags'].each { |t| hostgroups << t unless hostgroups.include?(t) }
+hostgroups << node['nagios']['server_role'] unless hostgroups.include?(node['nagios']['server_role'])
+
 # Add all unique platforms to the array of hostgroups
 nodes.each do |n|
   hostgroups << n['os'] unless hostgroups.include?(n['os'])
+  n['tags'].each { |t| hostgroups << t unless hostgroups.include?(t) }
 end
 
 nagios_bags = NagiosDataBags.new
