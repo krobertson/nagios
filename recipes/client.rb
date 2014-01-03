@@ -26,20 +26,20 @@
 mon_host = ['127.0.0.1']
 
 # put all nagios servers that you find in the NPRE config.
-if node.run_list.roles.include?(node['nagios']['server_role'])
+if node['tags'].roles.include?(node['nagios']['server_role'])
   mon_host << node['ipaddress']
 elsif node['nagios']['multi_environment_monitoring']
-  search(:node, "role:#{node['nagios']['server_role']}") do |n|
+  search(:node, "tags:#{node['nagios']['server_role']}") do |n|
     mon_host << n['ipaddress']
   end
 elsif !Chef::Config[:solo]
-  search(:node, "role:#{node['nagios']['server_role']} AND chef_environment:#{node.chef_environment}") do |n|
+  search(:node, "tags:#{node['nagios']['server_role']} AND chef_environment:#{node.chef_environment}") do |n|
     mon_host << n['ipaddress']
   end
 end
 # on the first run, search isn't available, so if you're the nagios server, go
 # ahead and put your own IP address in the NRPE config (unless it's already there).
-if node.run_list.roles.include?(node['nagios']['server_role'])
+if node['tags'].roles.include?(node['nagios']['server_role'])
   mon_host << node['ipaddress'] unless mon_host.include?(node['ipaddress'])
 end
 
