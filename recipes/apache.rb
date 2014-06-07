@@ -44,4 +44,8 @@ file "#{node['apache']['dir']}/conf.d/#{node['nagios']['server']['vname']}.conf"
   action :delete
 end
 
-apache_site "#{node['nagios']['server']['vname']}.conf"
+# beware: newer apache cookbook does:
+#   only_if { ::File.exists?("#{node['apache']['dir']}/sites-available/#{params[:name]}.conf") }
+# so requires that the .conf _not_ be passed in via this directive, while a2ensite is
+# agnostic about whether it's present or not.
+apache_site "#{node['nagios']['server']['vname']}"
